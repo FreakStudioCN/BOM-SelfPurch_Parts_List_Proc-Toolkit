@@ -4,11 +4,11 @@
 ## 一、包含工具及核心功能
 | 脚本文件名                          | 核心功能                                                                 |
 |-------------------------------------|--------------------------------------------------------------------------|
-| `bom_keyword_search.py`             | 搜索BOM文件中包含指定元器件关键词的文件（如找“RES-ADJ-TH_3362P”所在BOM） |
-| `bom_self_purchase_processor.py`    | 提取BOM中**自采器件**，生成「按模块汇总表」+「去重类型表」               |
-| `modacc_list_generator.py`          | 生成ModAcc模块/扩展板的标准化配件清单模板（含自动算总价公式）             |
+| `bom_component_search.py`             | 搜索BOM文件中包含指定元器件关键词的文件（如找“RES-ADJ-TH_3362P”所在BOM） |
+| `extract_bom_components.py`    | 提取BOM中**自采器件**，生成「按模块汇总表」+「去重类型表」               |
+| `mod_acc_list_gen.py`          | 生成ModAcc模块/扩展板的标准化配件清单模板（含自动算总价公式）             |
 | `modacc_accessory_processor.py`     | 处理ModAcc配件清单，生成「模块汇总表」+「去重配件类型表」                |
-| `bom_non_self_purchase_processor.py`| 提取BOM中**非自采器件**（如合作厂商采购），生成「常规/特殊器件分类表」   |
+| `process_non_self_purchase_components.py`| 提取BOM中**非自采器件**（如合作厂商采购），生成「常规/特殊器件分类表」   |
 
 
 ## 二、关键前置规则（必须遵守，否则脚本无法识别）
@@ -28,7 +28,7 @@
 - 要求：必须以`BOM_`开头，包含`-v版本号`，后缀为`.xlsx`（推荐）或`.xls`。
 
 #### （2）ModAcc配件清单模板（输入/输出文件）
-- 生成模板格式（脚本`modacc_list_generator.py`自动生成）：`ModAcc_模块名-V版本号.xlsx`  
+- 生成模板格式（脚本`mod_acc_list_gen.py`自动生成）：`ModAcc_模块名-V版本号.xlsx`  
 - 示例：`ModAcc_MG811二氧化碳模块-V1.2.0.xlsx`  
 - 要求：模块文件夹需按`模块名-V版本号`命名（如`MG811二氧化碳模块-V1.2.0`），脚本会在文件夹内生成对应模板。
 
@@ -48,11 +48,11 @@
 ```
 2025_电机控制板项目/
 ├─ # 根工作目录（所有脚本放这里）
-├─ bom_self_purchase_processor.py          # 脚本1：BOM自采处理
-├─ bom_non_self_purchase_processor.py      # 脚本2：BOM非自采处理
-├─ modacc_list_generator.py                # 脚本3：ModAcc模板生成
+├─ extract_bom_components.py          # 脚本1：BOM自采处理
+├─ process_non_self_purchase_components.py      # 脚本2：BOM非自采处理
+├─ mod_acc_list_gen.py                # 脚本3：ModAcc模板生成
 ├─ modacc_accessory_processor.py           # 脚本4：ModAcc配件处理
-├─ bom_keyword_search.py                   # 脚本5：BOM关键词搜索
+├─ bom_component_search.py                   # 脚本5：BOM关键词搜索
 ├─ 电机驱动模块 - V1.0/                    # 模块文件夹（按“模块名 - V版本号”命名）
 │  ├─ BOM_电机驱动模块 - v1.0.xlsx         # 原始BOM文件（符合命名标准）
 │  └─ ModAcc_电机驱动模块 - V1.0.xlsx      # 脚本3生成的配件清单模板
@@ -71,7 +71,7 @@
 1. 按“推荐文件夹结构”，在根目录下创建模块文件夹（如`MG811二氧化碳模块-V1.2.0`）。  
 2. 运行脚本：在根目录打开终端，输入命令：  
 ```bash
-python modacc_list_generator.py
+python mod_acc_list_gen.py
 ```
 3. 脚本会自动在每个模块文件夹内生成`ModAcc_模块名-V版本号.xlsx`模板（含预设列和公式：A 列序号自增、E 列总价 = B 列数量 ×D 列单价）。
 
@@ -80,7 +80,7 @@ python modacc_list_generator.py
 2. 确保 BOM 文件中 “自采器件” 已按 “自采器件标注格式” 填写（淘宝链接 / 下单配置 / 最小起订量非空）。
 3. 运行脚本：
 ```bash
-python bom_self_purchase_processor.py
+python extract_bom_components.py
 ```
 * 根目录生成 2 个文件：
   - **1_按模块汇总_自采元器件.xlsx**：按模块分组，合并相同模块单元格，便于按模块采购。
@@ -90,15 +90,15 @@ python bom_self_purchase_processor.py
 1. 原始 BOM 文件放入模块文件夹（无需额外标注，脚本自动识别 3 列均空的器件）。
 2. 运行脚本：
 ```bash
-python bom_non_self_purchase_processor.py
+python process_non_self_purchase_components.py
 ```
 3. 根目录生成 **非自采器件分类汇总表.xlsx**：区分 “常规器件”（位号 / 供应商编号齐全）和 “特殊器件”（信息缺失），方便发给厂商确认。
 
 ### 场景 4：搜索 BOM 中的指定元器件（换料 / 追溯）
-1. 打开 `bom_keyword_search.py`，修改第 35 行的 `SEARCH_KEY` 变量（如找可调电阻，改为 `SEARCH_KEY = "RES-ADJ-TH_3362P"`）。
+1. 打开 `bom_component_search.py`，修改第 35 行的 `SEARCH_KEY` 变量（如找可调电阻，改为 `SEARCH_KEY = "RES-ADJ-TH_3362P"`）。
 2. 运行脚本：
 ```bash
-python bom_keyword_search.py
+python bom_component_search.py
 ```
 3. 终端输出结果：包含该关键词的 BOM 文件名及完整路径（如找到匹配文件：`BOM_电机驱动模块-v1.0.xlsx`（路径：`/2025_电机控制板项目/电机驱动模块-V1.0/BOM_电机驱动模块-v1.0.xlsx`））
 
