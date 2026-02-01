@@ -4,6 +4,7 @@
 # @Author  : 李清水
 # @File    : mod_acc_list_gen.py
 # @Description : 遍历当前目录下符合规则的模块/扩展板文件夹，自动生成标准化配件清单Excel文件
+#                兼容文件夹格式：1.xxx模块/扩展板-v1.1 2.xxx模块/扩展板_v1.1（支持V/v大小写、-/_两种分隔符）
 #                核心功能：筛选目标文件夹→创建带预设列的Excel→设置公式（序号自增、总价计算）→优化格式（边框/居中/表头加粗）
 
 import os
@@ -21,9 +22,9 @@ thin_border = Border(
 
 def gen_module_accessory_lists():
     root_dir = Path(os.getcwd())
-    # -------------------------- 核心修改：筛选正则同时匹配“模块”或“扩展板” --------------------------
-    # 匹配含“模块”或“扩展板”+ 以“-V版本号”结尾的文件夹
-    module_folder_pattern = re.compile(r'.+(模块|扩展板)-V\d+\.\d+(\.\d+)?$')
+    # -------------------------- 核心修改：正则同时匹配[-_]分隔符、[Vv]大小写版本号 --------------------------
+    # 匹配任意名称 + 分隔符(-/_) + 版本号(v/V+数字) 结尾的文件夹
+    module_folder_pattern = re.compile(r'.+[-_][Vv]\d+\.\d+(\.\d+)?$')
     list_columns = ["No.", "Quantity", "Manufacturer Part", "Price", "Value", "淘宝链接", "下单配置", "最小起订量"]
 
     for folder in root_dir.iterdir():

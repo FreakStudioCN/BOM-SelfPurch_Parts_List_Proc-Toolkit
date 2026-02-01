@@ -3,7 +3,7 @@
 # @Time    : 2025/12/13 下午6:35
 # @Author  : 李清水
 # @File    : extract_bom_components.py
-# @Description : 处理BOM文件（命名格式：BOM_模块名-v版本号.xlsx/xls），提取需自行采购的元器件数据
+# @Description : 处理BOM文件（命名格式：1.BOM_模块名-v版本号.xlsx/xls 2.BOM_模块名_v版本号.xlsx/xls），提取需自行采购的元器件数据
 #                核心功能：筛选自采数据→按模块汇总并计算总价→生成带样式的Excel表（模块汇总表+去重类型表）→输出统计信息
 
 import os
@@ -15,7 +15,8 @@ from openpyxl.styles import PatternFill, Alignment, Side, Border
 
 def extract_and_format_bom():
     root_dir = Path(os.getcwd())
-    bom_file_pattern = re.compile(r'^BOM_.+-v\d+\.\d+(\.\d+)?\.(xlsx|xls)$', re.IGNORECASE)
+    # 修改点1：正则匹配 [-_]v ，同时支持 -v 和 _v 两种版本号前缀
+    bom_file_pattern = re.compile(r'^BOM_.+[-_]v\d+\.\d+(\.\d+)?\.(xlsx|xls)$', re.IGNORECASE)
 
     # 核心列（匹配你的BOM）
     core_columns = [
@@ -76,8 +77,8 @@ def extract_and_format_bom():
                     for col in ['Quantity', 'LCSC Price', 'Value']:
                         df_calc[col] = pd.to_numeric(df_calc[col], errors='coerce').fillna(0)
 
-                    # 提取模块名
-                    module_name = re.sub(r'^BOM_(.+)-v\d+\.\d+(\.\d+)?\.(xlsx|xls)$', r'\1', file_name, re.IGNORECASE)
+                    # 修改点2：提取模块名的正则，同样支持 [-_]v 两种分隔符，正确截取模块名
+                    module_name = re.sub(r'^BOM_(.+)[-_]v\d+\.\d+(\.\d+)?\.(xlsx|xls)$', r'\1', file_name, re.IGNORECASE)
                     df_with_module = df_calc.copy()
                     df_with_module.insert(0, '模块名称', module_name)
                     all_self_purchase.append(df_with_module)
