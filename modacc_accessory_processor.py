@@ -16,15 +16,16 @@ from openpyxl.styles import PatternFill, Alignment, Side, Border
 def extract_and_format_accessory():
     """
     完整功能：处理ModAcc系列配件清单文件
-    1. 匹配ModAcc_模块名-V版本号.xlsx格式文件
+    1. 匹配ModAcc_模块名-V版本号.xlsx 或 ModAcc_模块名_v版本号.xlsx格式文件（兼容大小写）
     2. 提取指定核心列数据，筛选有效配件
     3. 按模块汇总，同一模块行颜色统一、不同模块颜色交替
     4. 生成2个格式化Excel表+统计信息
     """
     # 1. 基础配置（100%匹配用户指定核心列+颜色规则）
     root_dir = Path(os.getcwd())
-    # 文件匹配规则：支持ModAcc_xxx-V1.0.xlsx、ModAcc_xxx-V1.2.0.xlsx等版本格式
-    accessory_file_pattern = re.compile(r'^ModAcc_.+-V\d+\.\d+(\.\d+)?\.xlsx$', re.IGNORECASE)
+    # 关键修改：正则表达式支持 -V/-v 或 _V/_v 两种版本号前缀，兼容大小写
+    # 匹配规则：ModAcc_xxx-V1.0.xlsx、ModAcc_xxx_v1.2.0.xlsx、modacc_xxx_V2.5.xlsx 等
+    accessory_file_pattern = re.compile(r'^ModAcc_.+([-_]v)\d+\.\d+(\.\d+)?\.xlsx$', re.IGNORECASE)
 
     # 核心列：用户指定的纯英文+中文列（缺少则跳过文件）
     core_columns = [
@@ -99,9 +100,10 @@ def extract_and_format_accessory():
                     for col in numeric_cols:
                         df_calc[col] = pd.to_numeric(df_calc[col], errors='coerce').fillna(0)
 
-                    # 提取模块名称：从文件名中截取（例：ModAcc_MG811-V1.2.0.xlsx → MG811）
+                    # 关键修改：提取模块名称，兼容 -V/-v 和 _V/_v 两种分隔符
+                    # 匹配规则：同时处理 ModAcc_xxx-V1.0.xlsx 和 ModAcc_xxx_v1.2.0.xlsx 格式
                     module_name = re.sub(
-                        r'^ModAcc_(.+)-V\d+\.\d+(\.\d+)?\.xlsx$',
+                        r'^ModAcc_(.+)[-_]v\d+\.\d+(\.\d+)?\.xlsx$',
                         r'\1',
                         file_name,
                         re.IGNORECASE
