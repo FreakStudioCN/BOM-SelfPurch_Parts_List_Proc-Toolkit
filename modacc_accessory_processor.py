@@ -8,6 +8,7 @@
 
 import os
 import re
+import copy
 import pandas as pd
 from pathlib import Path
 from openpyxl import load_workbook
@@ -106,7 +107,7 @@ def extract_and_format_accessory():
                         r'^ModAcc_(.+)[-_]v\d+\.\d+(\.\d+)?\.xlsx$',
                         r'\1',
                         file_name,
-                        re.IGNORECASE
+                        flags=re.IGNORECASE
                     )
                     # 新增“模块名称”列（作为首列，便于后续按模块汇总）
                     df_with_module = df_calc.copy()
@@ -187,7 +188,9 @@ def extract_and_format_accessory():
     # 步骤3：表头样式优化（加粗+边框+居中）
     for col in range(1, max_col1 + 1):
         header_cell = ws1.cell(row=1, column=col)
-        header_cell.font = header_cell.font.copy(bold=True)  # 表头加粗
+        new_font = copy.copy(header_cell.font)
+        new_font.bold = True
+        header_cell.font = new_font  # 表头加粗
         header_cell.border = thin_border
         header_cell.alignment = Alignment(horizontal='center', vertical='center')
 
@@ -238,7 +241,9 @@ def extract_and_format_accessory():
     # 步骤2：表头样式优化（同文件1）
     for col in range(1, max_col2 + 1):
         header_cell = ws2.cell(row=1, column=col)
-        header_cell.font = header_cell.font.copy(bold=True)
+        new_font = copy.copy(header_cell.font)
+        new_font.bold = True
+        header_cell.font = new_font
         header_cell.border = thin_border
         header_cell.alignment = Alignment(horizontal='center', vertical='center')
 

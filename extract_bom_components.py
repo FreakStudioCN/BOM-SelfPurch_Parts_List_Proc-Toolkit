@@ -78,7 +78,7 @@ def extract_and_format_bom():
                         df_calc[col] = pd.to_numeric(df_calc[col], errors='coerce').fillna(0)
 
                     # 修改点2：提取模块名的正则，同样支持 [-_]v 两种分隔符，正确截取模块名
-                    module_name = re.sub(r'^BOM_(.+)[-_]v\d+\.\d+(\.\d+)?\.(xlsx|xls)$', r'\1', file_name, re.IGNORECASE)
+                    module_name = re.sub(r'^BOM_(.+)[-_]v\d+\.\d+(\.\d+)?\.(xlsx|xls)$', r'\1', file_name, flags=re.IGNORECASE)
                     df_with_module = df_calc.copy()
                     df_with_module.insert(0, '模块名称', module_name)
                     all_self_purchase.append(df_with_module)
